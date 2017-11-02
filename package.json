@@ -6,9 +6,13 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Mark Sanders",
+  "author": "sdscdeveloper@gmail.com",
   "license": "ISC",
   "dependencies": {
     "@google-cloud/logging": "^1.0.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ziplokk1/stack-driver-log-wrapper.git"
   }
 }

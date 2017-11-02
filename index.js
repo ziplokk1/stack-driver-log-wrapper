@@ -1,4 +1,4 @@
-const logging = require('@google-cloud/logging')();
+const logging = require('@google-cloud/logging');
 
 const severity = {
     DEFAULT: 'DEFAULT',
@@ -27,18 +27,44 @@ class Logger {
     /**
      * Create a logger instance.
      *
+     * If no project id is passed then it will use the default config from `gcloud init`.
+     * If no resourceType is passed then it will use the global logger.
+     * If no logName is passed then it will use the log name of default.
+     *
      * @constructor
-     * @param {String} name           The logger name.
-     * @param {String} resourceType   The logger resource type. See `type` field in documentation. (https://cloud.google.com/logging/docs/reference/v2/rest/v2/MonitoredResource)
-     * @param {Object} resourceLabels The logger resource labels. See `labels` field in documentation. (https://cloud.google.com/logging/docs/reference/v2/rest/v2/MonitoredResource)
-     * @param {Object} globalLabels   Custom labels to use for all log messages emitted from this logger. {labelName: labelValue [, labelName: labelValue]}
+     * @param {Object} options        Options config.
+     *
+     * Options:
+     *
+     * @param {String} options.name           The logger name.
+     * @param {String} options.resourceType   The logger resource type. See `type` field in documentation. (https://cloud.google.com/logging/docs/reference/v2/rest/v2/MonitoredResource)
+     * @param {Object} options.resourceLabels The logger resource labels. See `labels` field in documentation. (https://cloud.google.com/logging/docs/reference/v2/rest/v2/MonitoredResource)
+     * @param {Object} options.globalLabels   Custom labels to use for all log messages emitted from this logger. {labelName: labelValue [, labelName: labelValue]}
+     * @param {Boolean} options.echo          Send messages to stdout as well.
      */
-    constructor (name, resourceType, resourceLabels, globalLabels) {
-        this.name = name;
-        this.resourceType = resourceType;
-        this.resourceLabels = resourceLabels || {};
-        this._logger = logging.log(name);
-        this.globalLabels = globalLabels || {};
+    constructor (options) {
+        const defaultOptions = {
+            projectId: 'default',
+            name: 'default',
+            resourceType: 'global',
+            resourceLabels: {},
+            globalLabels: {},
+            echo: false
+        };
+        options = Object.assign(defaultOptions, options);
+        let loggingApi;
+
+        if (options.projectId === 'default') {
+            loggingApi = logging();
+        } else {
+            loggingApi = logging({projectId: options.projectId});
+        }
+        this.name = options.name;
+        this.resourceType = options.resourceType;
+        this.resourceLabels = options.resourceLabels;
+        this.globalLabels = options.globalLabels;
+        this.echo = options.echo;
+        this._logger = loggingApi.log(options.name);
     }
 
     /**
@@ -85,7 +111,9 @@ class Logger {
         if (options && options.labels) {
             options.labels = Object.assign(this.globalLabels, options.labels);
         }
-
+        if (this.echo) {
+            console.log(severity, message);
+        }
         const entry = this.makeEntry(message, severity);
         this._logger.write(entry, options)
             .then((data) => {
@@ -93,36 +121,36 @@ class Logger {
             });
     }
 
-    alert (message, labels) {
-        this.log(message, severity.ALERT, labels)
+    alert (message, options) {
+        this.log(message, severity.ALERT, options)
     }
 
-    critical (message, labels) {
-        this.log(message, severity.CRITICAL, labels)
+    critical (message, options) {
+        this.log(message, severity.CRITICAL, options)
     }
 
-    debug (message, labels) {
-        this.log(message, severity.DEBUG, labels)
+    debug (message, options) {
+        this.log(message, severity.DEBUG, options)
     }
 
-    emergency (message, labels) {
-        this.log(message, severity.EMERGENCY, labels)
+    emergency (message, options) {
+        this.log(message, severity.EMERGENCY, options)
     }
 
-    error (message, labels) {
-        this.log(message, severity.ERROR, labels)
+    error (message, options) {
+        this.log(message, severity.ERROR, options)
     }
 
-    info (message, labels) {
-        this.log(message, severity.INFO, labels)
+    info (message, options) {
+        this.log(message, severity.INFO, options)
     }
 
-    notice (message, labels) {
-        this.log(message, severity.NOTICE, labels)
+    notice (message, options) {
+        this.log(message, severity.NOTICE, options)
     }
 
-    warning (message, labels) {
-        this.log(message, severity.WARNING, labels)
+    warning (message, options) {
+        this.log(message, severity.WARNING, options)
     }
 }
 
