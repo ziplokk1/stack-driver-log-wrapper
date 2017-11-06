@@ -115,42 +115,39 @@ class Logger {
             console.log(severity, message);
         }
         const entry = this.makeEntry(message, severity);
-        this._logger.write(entry, options)
-            .then((data) => {
-                // do nothing
-            });
+        return this._logger.write(entry, options);
     }
 
     alert (message, options) {
-        this.log(message, severity.ALERT, options)
+        return this.log(message, severity.ALERT, options)
     }
 
     critical (message, options) {
-        this.log(message, severity.CRITICAL, options)
+        return this.log(message, severity.CRITICAL, options)
     }
 
     debug (message, options) {
-        this.log(message, severity.DEBUG, options)
+        return this.log(message, severity.DEBUG, options)
     }
 
     emergency (message, options) {
-        this.log(message, severity.EMERGENCY, options)
+        return this.log(message, severity.EMERGENCY, options)
     }
 
     error (message, options) {
-        this.log(message, severity.ERROR, options)
+        return this.log(message, severity.ERROR, options)
     }
 
     info (message, options) {
-        this.log(message, severity.INFO, options)
+        return this.log(message, severity.INFO, options)
     }
 
     notice (message, options) {
-        this.log(message, severity.NOTICE, options)
+        return this.log(message, severity.NOTICE, options)
     }
 
     warning (message, options) {
-        this.log(message, severity.WARNING, options)
+        return this.log(message, severity.WARNING, options)
     }
 }
 
