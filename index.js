@@ -1,5 +1,4 @@
 const logging = require('@google-cloud/logging');
-const stackdriver = require('@google-cloud/error-reporting');
 
 const severity = {
     DEFAULT: 'DEFAULT',
@@ -42,6 +41,7 @@ class Logger {
      * @param {Object} options.resourceLabels The logger resource labels. See `labels` field in documentation. (https://cloud.google.com/logging/docs/reference/v2/rest/v2/MonitoredResource)
      * @param {Object} options.globalLabels   Custom labels to use for all log messages emitted from this logger. {labelName: labelValue [, labelName: labelValue]}
      * @param {Boolean} options.echo          Send messages to stdout as well.
+     * @param {Object} options.reporter       An instance of an error reporter or any class with a method `report`.
      */
     constructor (options) {
         const defaultOptions = {
@@ -50,7 +50,8 @@ class Logger {
             resourceType: 'global',
             resourceLabels: {},
             globalLabels: {},
-            echo: false
+            echo: false,
+            reporter: null
         };
         options = Object.assign(defaultOptions, options);
         let loggingApi;
@@ -66,6 +67,7 @@ class Logger {
         this.globalLabels = options.globalLabels;
         this.echo = options.echo;
         this._logger = loggingApi.log(options.name);
+        this.reporter = options.reporter;
     }
 
     /**
@@ -94,12 +96,23 @@ class Logger {
      * @param {String|Object} message  The message to send to stack driver.
      * @param {String}        severity The severity to use. See (https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#LogSeverity)
      * @param {Object}        options  Any overriding options to this logger. Any labels passed into the options take precedence over the options passed into the constructor. See (https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry)
+     * @param {Boolean} options.report Report the message using the supplied reporter in the constructor of this method.
      */
     log (message, severity, options) {
 
         // Make sure options exists.
         if (!options) {
             options = {};
+        }
+
+        if (options.report) {
+            if (message instanceof Error) {
+                this.reporter.report(message);
+            } else if (message.message) {
+                this.reporter.report(new Error(message.message))
+            } else {
+              this.reporter.report(new Error(message))
+            }
         }
 
         // Make sure labels exist in the options so that we can assign our default options.
@@ -124,11 +137,6 @@ class Logger {
     }
 
     critical (message, options) {
-        if (message instanceof Error) {
-            stackdriver.report(message);
-        } else {
-            stackdriver.report(new Error(message));
-        }
         return this.log(message, severity.CRITICAL, options)
     }
 
