@@ -1,4 +1,5 @@
 const logging = require('@google-cloud/logging');
+const stackdriver = require('@google-cloud/error-reporting');
 
 const severity = {
     DEFAULT: 'DEFAULT',
@@ -123,6 +124,11 @@ class Logger {
     }
 
     critical (message, options) {
+        if (message instanceof Error) {
+            stackdriver.report(message);
+        } else {
+            stackdriver.report(new Error(message));
+        }
         return this.log(message, severity.CRITICAL, options)
     }
 

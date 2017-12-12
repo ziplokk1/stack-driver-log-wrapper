@@ -9,6 +9,7 @@
   "author": "sdscdeveloper@gmail.com",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/error-reporting": "^0.2.2",
     "@google-cloud/logging": "^1.0.6"
   },
   "repository": {
